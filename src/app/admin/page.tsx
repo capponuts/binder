@@ -59,6 +59,30 @@ export default function AdminPage() {
     });
   }, [rows, q, setFilter]);
 
+  // cartes manquantes = non possédées ET non foil (respecte le filtre/recherche courant)
+  const missing = useMemo(
+    () =>
+      filtered.filter((r) => {
+        const s = map[keyFor(r)] ?? { name: r.name, number: r.number, owned: false, duplicate: false, foil: false };
+        return !s.owned && !s.foil;
+      }),
+    [filtered, map]
+  );
+
+  function handleExport() {
+    const lines = missing.map((r) => {
+      const num = r.number?.split("/")[0] ?? "";
+      return num ? `${num} ${r.name}` : r.name;
+    });
+    const blob = new Blob([lines.join("\n") + "\n"], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `cartes-manquantes${setFilter !== "all" ? `-${setFilter}` : ""}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   async function toggle(row: { name: string; number?: string }, key: "owned" | "duplicate" | "foil", value: boolean) {
     const k = keyFor(row);
     const current = map[k] ?? { name: row.name, number: row.number, owned: false, duplicate: false, foil: false };
@@ -89,6 +113,15 @@ export default function AdminPage() {
             <option value="ogn">Set de Base (OGN)</option>
             <option value="ogs">Proving Grounds (OGS)</option>
           </select>
+          <button
+            type="button"
+            onClick={handleExport}
+            disabled={missing.length === 0}
+            title="Exporter en .txt les cartes manquantes (non possédées et non foil)"
+            className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-amber-200 hover:bg-amber-500/20 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            ⬇️ Export manquantes ({missing.length})
+          </button>
           <a href="/" className="rounded-md border border-zinc-700/60 px-3 py-2 text-zinc-300 hover:bg-zinc-800" aria-label="Accueil">
             🏠 Home
           </a>

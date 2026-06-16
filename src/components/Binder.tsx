@@ -47,7 +47,7 @@ export default function Binder({}: BinderProps) {
   const refs = useAllCardRefs();
   const [imageMap, setImageMap] = useState<Record<string, string>>({});
   const [query, setQuery] = useState("");
-  const [cols, setCols] = useState<number>(4);
+  const [cols, setCols] = useState<number>(8);
   const [setFilter, setSetFilter] = useState<"all" | "ogn" | "ogs">("all");
   const [statusMap, setStatusMap] = useState<Record<string, { owned: boolean; duplicate: boolean; foil: boolean }>>({});
 
