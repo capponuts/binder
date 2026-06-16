@@ -59,20 +59,23 @@ export default function AdminPage() {
     });
   }, [rows, q, setFilter]);
 
-  // cartes manquantes = non possédées ET non foil (respecte le filtre/recherche courant)
+  // cartes manquantes = version normale (possédé) OU version foil manquante (respecte le filtre/recherche courant)
   const missing = useMemo(
     () =>
       filtered.filter((r) => {
         const s = map[keyFor(r)] ?? { name: r.name, number: r.number, owned: false, duplicate: false, foil: false };
-        return !s.owned && !s.foil;
+        return !s.owned || !s.foil;
       }),
     [filtered, map]
   );
 
   function handleExport() {
     const lines = missing.map((r) => {
+      const s = map[keyFor(r)] ?? { name: r.name, number: r.number, owned: false, duplicate: false, foil: false };
       const num = r.number?.split("/")[0] ?? "";
-      return num ? `${num} ${r.name}` : r.name;
+      const manque = [!s.owned ? "normale" : null, !s.foil ? "foil" : null].filter(Boolean).join(" + ");
+      const base = num ? `${num} ${r.name}` : r.name;
+      return manque ? `${base} (${manque})` : base;
     });
     const blob = new Blob([lines.join("\n") + "\n"], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
